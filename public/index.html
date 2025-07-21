@@ -23,12 +23,16 @@
       color:#fff; text-align:center; padding:1rem; position:relative;
     }
     .header h1 { margin:0; font-size:1.5rem; }
-    /* language selector */
     #lang-select {
       position:absolute; top:12px; left:12px;
       background:rgba(255,255,255,0.3); border:none; color:#fff;
       padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;
     }
+    .help-icon {
+      position:absolute; top:12px; right:12px; width:20px; height:20px;
+      cursor:pointer; opacity:0.6;
+    }
+    .help-icon:hover { opacity:1 }
     .content { padding:1rem; }
     #drop-zone {
       border:2px dashed #667eea; border-radius:6px;
@@ -63,11 +67,10 @@
       text-align:center; padding:0.5rem; font-size:0.85rem;
       background:#f0f4ff;
     }
-    /* selection highlight */
     #selection {
-      position:absolute; border:2px solid #ffab00; pointer-events:none; display:none;
+      position:absolute; border:2px solid #ffab00;
+      pointer-events:none; display:none;
     }
-    /* modal help */
     .modal {
       display:none; position:fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(0,0,0,0.5); align-items:center; justify-content:center;
@@ -87,13 +90,18 @@
 <body>
 
   <div class="card">
-    <div class="header">
-      <select id="lang-select">
-        <option value="fr">FR</option>
-        <option value="en">EN</option>
-      </select>
-      <h1 id="title">Awakening Calculator</h1>
-    </div>
+    <!-- Langue -->
+    <select id="lang-select" title="Changer la langue">
+      <option value="fr">FR</option>
+      <option value="en">EN</option>
+    </select>
+    <!-- Help icon -->
+    <svg class="help-icon" title="Comment ça marche ?" viewBox="0 0 24 24" fill="#fff">
+      <circle cx="12" cy="12" r="10" fill="#fff"/>
+      <text x="12" y="17" text-anchor="middle" font-size="14" fill="#667eea">i</text>
+    </svg>
+
+    <div class="header"><h1 id="title">Awakening Calculator</h1></div>
     <div class="content">
       <div id="drop-zone" title="">
         <span id="drop-text"></span>
@@ -107,25 +115,31 @@
       </div>
 
       <div class="buttons">
-        <button class="btn" id="analyze-btn" title="" disabled><span id="analyze-text"></span></button>
-        <button class="btn" id="reset-btn" title="" disabled><span id="reset-text"></span></button>
+        <button class="btn" id="analyze-btn" title="" disabled>
+          <span id="analyze-text"></span>
+        </button>
+        <button class="btn" id="reset-btn" title="" disabled>
+          <span id="reset-text"></span>
+        </button>
       </div>
 
       <div class="field">
         <label for="harm" id="lbl-harm"></label>
-        <input id="harm" type="number" placeholder=""/>
+        <input id="harm" type="number" placeholder="" title="Valeur extraite ou manuelle"/>
       </div>
       <div class="field">
         <label for="tension" id="lbl-tension"></label>
-        <input id="tension" type="number" step="0.01" placeholder=""/>
+        <input id="tension" type="number" step="0.01" placeholder="" title="Valeur extraite ou manuelle"/>
       </div>
       <div class="field">
         <label for="legend" id="lbl-legend"></label>
-        <input id="legend" type="number" placeholder=""/>
+        <input id="legend" type="number" placeholder="" title="Valeur extraite ou manuelle"/>
       </div>
 
       <div class="buttons">
-        <button class="btn" id="calc-btn" title=""><span id="calc-text"></span></button>
+        <button class="btn" id="calc-btn" title="">
+          <span id="calc-text"></span>
+        </button>
       </div>
 
       <div id="result"></div>
@@ -133,7 +147,7 @@
     <div class="footer"><span id="footer-text"></span></div>
   </div>
 
-  <!-- Help modal -->
+  <!-- Help Modal -->
   <div class="modal" id="help-modal">
     <div class="modal-content">
       <button class="modal-close" onclick="helpModal.style.display='none'">✕</button>
@@ -148,7 +162,7 @@
   </div>
 
   <script>
-    // Traductions
+    // Traductions FR / EN
     const T = {
       fr: {
         drop: "Glisse ou clique pour importer ton screenshot",
@@ -188,16 +202,18 @@
       }
     };
 
-    // Init UI elements
+    // UI elements
     const langSelect = document.getElementById('lang-select');
+    const helpIcon   = document.querySelector('.help-icon');
+    const helpModal  = document.getElementById('help-modal');
     const elems = {
-      dropText: document.getElementById('drop-text'),
-      step1:    document.getElementById('step1'),
-      step2:    document.getElementById('step2'),
-      step3:    document.getElementById('step3'),
-      analyze:  document.getElementById('analyze-text'),
-      reset:    document.getElementById('reset-text'),
-      lblHarm:  document.getElementById('lbl-harm'),
+      dropText:   document.getElementById('drop-text'),
+      step1:      document.getElementById('step1'),
+      step2:      document.getElementById('step2'),
+      step3:      document.getElementById('step3'),
+      analyze:    document.getElementById('analyze-text'),
+      reset:      document.getElementById('reset-text'),
+      lblHarm:    document.getElementById('lbl-harm'),
       lblTension: document.getElementById('lbl-tension'),
       lblLegend:  document.getElementById('lbl-legend'),
       calc:       document.getElementById('calc-text'),
@@ -208,45 +224,42 @@
       help3:      document.getElementById('help-3'),
       help4:      document.getElementById('help-4'),
     };
-    const helpModal = document.getElementById('help-modal');
-    const helpIcon  = document.querySelector('.help-icon');
 
     function setLanguage(lang) {
       const t = T[lang];
-      elems.dropText.textContent    = t.drop;
-      elems.step1.textContent       = t.step1;
-      elems.step2.textContent       = t.step2;
-      elems.step3.textContent       = t.step3;
-      elems.analyze.textContent     = t.analyze;
-      elems.reset.textContent       = t.reset;
-      elems.lblHarm.textContent     = t.lblHarm;
-      elems.lblTension.textContent  = t.lblTension;
-      elems.lblLegend.textContent   = t.lblLegend;
-      elems.calc.textContent        = t.calc;
-      elems.footer.textContent      = t.footer;
-      elems.helpTitle.textContent   = t.helpTitle;
-      elems.help1.textContent       = t.help1;
-      elems.help2.textContent       = t.help2;
-      elems.help3.textContent       = t.help3;
-      elems.help4.textContent       = t.help4;
+      elems.dropText.textContent   = t.drop;
+      elems.step1.textContent      = t.step1;
+      elems.step2.textContent      = t.step2;
+      elems.step3.textContent      = t.step3;
+      elems.analyze.textContent    = t.analyze;
+      elems.reset.textContent      = t.reset;
+      elems.lblHarm.textContent    = t.lblHarm;
+      elems.lblTension.textContent = t.lblTension;
+      elems.lblLegend.textContent  = t.lblLegend;
+      elems.calc.textContent       = t.calc;
+      elems.footer.textContent     = t.footer;
+      elems.helpTitle.textContent  = t.helpTitle;
+      elems.help1.textContent      = t.help1;
+      elems.help2.textContent      = t.help2;
+      elems.help3.textContent      = t.help3;
+      elems.help4.textContent      = t.help4;
       document.documentElement.lang = lang;
     }
 
-    // langue par défaut
+    // Initialisation
     setLanguage(langSelect.value);
     langSelect.addEventListener('change', e => setLanguage(e.target.value));
 
-    // help modal
+    // Help modal toggles
     helpIcon.addEventListener('click', () => helpModal.style.display = 'flex');
     helpModal.addEventListener('click', e => {
       if (e.target === helpModal) helpModal.style.display = 'none';
     });
 
-
-    // --- OCR + cropping 2 clics ---
-    const drop = document.getElementById('drop-zone');
-    const img  = document.getElementById('image');
-    const instr = document.getElementById('instr');
+    // OCR & cropping deux-clics
+    const drop       = document.getElementById('drop-zone');
+    const img        = document.getElementById('image');
+    const instr      = document.getElementById('instr');
     const analyzeBtn = document.getElementById('analyze-btn');
     const resetBtn   = document.getElementById('reset-btn');
     const calcBtn    = document.getElementById('calc-btn');
@@ -254,20 +267,22 @@
     const tensionIn  = document.getElementById('tension');
     const legendIn   = document.getElementById('legend');
     const resultEl   = document.getElementById('result');
-
     let coords = [], file;
 
+    // input file
     const fileInput = document.createElement('input');
     fileInput.type   = 'file';
     fileInput.accept = 'image/*';
     fileInput.style.display = 'none';
     document.body.appendChild(fileInput);
 
+    // drop & click handlers
     drop.addEventListener('click',   () => fileInput.click());
-    drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.background='#e0e7ff'; });
-    drop.addEventListener('dragleave',()=> drop.style.background='');
+    drop.addEventListener('dragover', e => { e.preventDefault(); });
+    drop.addEventListener('dragenter', e => { e.preventDefault(); drop.style.background='#eaf0ff'; });
+    drop.addEventListener('dragleave', () => drop.style.background='' );
     drop.addEventListener('drop',    e => { e.preventDefault(); drop.style.background=''; handleFile(e.dataTransfer.files[0]); });
-    fileInput.addEventListener('change', ()=> handleFile(fileInput.files[0]));
+    fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
 
     function handleFile(f) {
       file = f; coords = [];
@@ -276,7 +291,7 @@
       img.style.display = 'block';
       instr.style.display = 'block';
       analyzeBtn.disabled = true;
-      resetBtn.disabled   = false;
+      resetBtn.disabled = false;
       resultEl.textContent = '';
       img.addEventListener('click', onImgClick);
     }
@@ -299,28 +314,31 @@
         sel.id = 'selection';
         document.body.appendChild(sel);
       }
-      if (coords.length < 1) { sel.style.display = 'none'; return; }
-      const [a, b] = coords;
+      if (coords.length < 1) {
+        sel.style.display = 'none';
+        return;
+      }
+      const [a,b] = coords;
       const rImg = img.getBoundingClientRect();
-      const left  = rImg.left + Math.min(a.x, b.x);
-      const top   = rImg.top  + Math.min(a.y, b.y);
-      const width = Math.abs(a.x - b.x), height = Math.abs(a.y - b.y);
+      const left  = rImg.left + Math.min(a.x,b.x);
+      const top   = rImg.top  + Math.min(a.y,b.y);
+      const width = Math.abs(a.x-b.x), height = Math.abs(a.y-b.y);
       sel.style.display = 'block';
-      sel.style.left   = left  + 'px';
-      sel.style.top    = top   + 'px';
+      sel.style.left   = left + 'px';
+      sel.style.top    = top  + 'px';
       sel.style.width  = width + 'px';
-      sel.style.height = height+ 'px';
+      sel.style.height = height + 'px';
     }
 
     analyzeBtn.addEventListener('click', async () => {
-      resultEl.textContent = T[langSelect.value].analyze + '…';
+      resultEl.textContent = '⏳ ' + T[langSelect.value].analyze + '…';
       const [a,b] = coords;
       const scaleX = img.naturalWidth  / img.width;
       const scaleY = img.naturalHeight / img.height;
-      const X = Math.min(a.x,b.x) * scaleX;
-      const Y = Math.min(a.y,b.y) * scaleY;
-      const W = Math.abs(a.x-b.x) * scaleX;
-      const H = Math.abs(a.y-b.y) * scaleY;
+      const X = Math.min(a.x,b.x)*scaleX;
+      const Y = Math.min(a.y,b.y)*scaleY;
+      const W = Math.abs(a.x-b.x)*scaleX;
+      const H = Math.abs(a.y-b.y)*scaleY;
 
       const canvas = document.createElement('canvas');
       canvas.width  = W; canvas.height = H;
@@ -348,10 +366,10 @@
     resetBtn.addEventListener('click', () => {
       coords = []; drawSelection();
       analyzeBtn.disabled = true; resetBtn.disabled = true;
-      img.style.display   = 'none'; drop.style.display = 'flex';
-      fileInput.value     = '';
+      img.style.display = 'none'; drop.style.display = 'flex';
+      fileInput.value = '';
       instr.style.display = 'none';
-      resultEl.textContent= '';
+      resultEl.textContent = '';
     });
 
     calcBtn.addEventListener('click', () => {
