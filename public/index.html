@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Awakening Calculator Albion</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
@@ -28,17 +28,9 @@
       height:180px; position:relative;
       background:#f7f9fc; cursor:pointer;
       display:flex; align-items:center; justify-content:center;
-      color:#667eea; text-align:center;
+      color:#667eea; text-align:center; margin-bottom:1rem;
     }
-    #drop-zone img {
-      max-width:100%; max-height:100%;
-      user-select:none;
-    }
-    #selection {
-      position:absolute; border:2px solid #ffab00;
-      display:none; pointer-events:none;
-    }
-    .field { margin-top:0.75rem; }
+    .field { margin-bottom:0.75rem; }
     .field label {
       display:block; font-weight:500; margin-bottom:0.25rem; color:#333;
     }
@@ -47,12 +39,14 @@
       border-radius:4px; font-size:1rem;
     }
     .buttons {
-      margin-top:0.75rem; display:flex; gap:0.5rem;
+      display:flex; gap:0.5rem; margin-top:0.5rem;
     }
     .btn {
       flex:1; padding:0.5rem; background:#667eea; color:#fff;
       border:none; border-radius:4px; cursor:pointer; font-weight:500;
+      transition:background .2s;
     }
+    .btn:hover { background:#5a67d8; }
     .btn:disabled { background:#a3bffa; cursor:default; }
     #result {
       margin-top:1rem; padding:0.75rem;
@@ -71,22 +65,25 @@
     <div class="header"><h1>Awakening Calculator</h1></div>
     <div class="content">
       <div id="drop-zone">Glisse ton image ici<br/>ou clique</div>
+
       <div class="field">
-        <label>Harmonisation max</label>
+        <label for="harm">Harmonisation max</label>
         <input id="harm" type="number" placeholder="229287"/>
       </div>
       <div class="field">
-        <label>Tension (%)</label>
+        <label for="tension">Tension (%)</label>
         <input id="tension" type="number" step="0.01" placeholder="110.23"/>
       </div>
       <div class="field">
-        <label>Valeur légendaire</label>
+        <label for="legend">Valeur légendaire</label>
         <input id="legend" type="number" placeholder="78"/>
       </div>
+
       <div class="buttons">
         <button class="btn" id="crop-btn" disabled>Crop &amp; Analyser</button>
         <button class="btn" id="calc-btn">Calculer</button>
       </div>
+
       <div id="result"></div>
     </div>
     <div class="footer">Créé par : Fruiknox</div>
@@ -100,113 +97,76 @@
     const tension = document.getElementById('tension');
     const legend  = document.getElementById('legend');
     const result  = document.getElementById('result');
+    let img, file;
 
-    let img, selection, startX, startY, selW, selH, dragging=false, file;
-
-    // zone drag&drop & click
-    drop.addEventListener('click', ()=> fileInput.click());
-    drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.style.background='#e0e7ff'; });
-    drop.addEventListener('dragleave', ()=> drop.style.background='');
-    drop.addEventListener('drop', e=>{ e.preventDefault(); drop.style.background=''; loadImage(e.dataTransfer.files[0]); });
-
+    // File input
     const fileInput = document.createElement('input');
-    fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
+    fileInput.type = 'file'; fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
     document.body.appendChild(fileInput);
-    fileInput.addEventListener('change', ()=> loadImage(fileInput.files[0]));
 
-    function loadImage(f){
+    drop.addEventListener('click',   ()=>fileInput.click());
+    drop.addEventListener('dragover',e=>{e.preventDefault(); drop.style.background='#e0e7ff';});
+    drop.addEventListener('dragleave', ()=>drop.style.background='');
+    drop.addEventListener('drop',    e=>{e.preventDefault(); drop.style.background=''; handleFile(e.dataTransfer.files[0]);});
+    fileInput.addEventListener('change', ()=>handleFile(fileInput.files[0]));
+
+    function handleFile(f) {
       file = f;
-      drop.innerHTML='';
-      img = document.createElement('img');
+      drop.innerHTML = '';
+      img = new Image();
       img.src = URL.createObjectURL(f);
       img.onload = ()=> URL.revokeObjectURL(img.src);
+      img.style.maxWidth = '100%';
       drop.appendChild(img);
-      // add selection div
-      selection = document.createElement('div');
-      selection.id='selection';
-      drop.appendChild(selection);
-      // enable cropping
       cropBtn.disabled = false;
-      attachSelection();
+      result.textContent = '';
     }
 
-    function attachSelection(){
-      drop.addEventListener('mousedown', onMouseDown);
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    }
-    function onMouseDown(e){
-      if(!img) return;
-      dragging=true;
-      // relative to drop
-      const rect=drop.getBoundingClientRect();
-      startX = e.clientX - rect.left;
-      startY = e.clientY - rect.top;
-      selection.style.left = startX+'px';
-      selection.style.top  = startY+'px';
-      selection.style.width = '0px';
-      selection.style.height= '0px';
-      selection.style.display='block';
-    }
-    function onMouseMove(e){
-      if(!dragging) return;
-      const rect=drop.getBoundingClientRect();
-      let x = e.clientX - rect.left, y = e.clientY - rect.top;
-      selW = x - startX; selH = y - startY;
-      selection.style.width  = Math.abs(selW) + 'px';
-      selection.style.height = Math.abs(selH) + 'px';
-      selection.style.left   = (selW<0? x: startX)+'px';
-      selection.style.top    = (selH<0? y: startY)+'px';
-    }
-    function onMouseUp(){
-      if(dragging) dragging=false;
-    }
+    cropBtn.addEventListener('click', async () => {
+      result.textContent = 'Rognage automatique…';
+      // Attendre que l'image soit chargée
+      await new Promise(r => img.complete ? r() : img.onload = r);
 
-    cropBtn.addEventListener('click', async ()=>{
-      result.textContent='Crop & OCR en cours…';
-      // compute crop coords
-      const rect=drop.getBoundingClientRect();
-      const imgRect=img.getBoundingClientRect();
-      const scaleX = img.naturalWidth  / imgRect.width;
-      const scaleY = img.naturalHeight / imgRect.height;
-      // selection position
-      const sx = (parseFloat(selection.style.left)) * scaleX;
-      const sy = (parseFloat(selection.style.top))  * scaleY;
-      const sw = Math.abs(selW) * scaleX;
-      const sh = Math.abs(selH) * scaleY;
-      // draw to canvas
+      const W = img.naturalWidth, H = img.naturalHeight;
+      // zone 5%→95% largeur, 45%→85% hauteur
+      const sx = 0.05 * W, sy = 0.45 * H;
+      const sw = 0.90 * W, sh = 0.40 * H;
+
       const canvas = document.createElement('canvas');
       canvas.width = sw; canvas.height = sh;
       const ctx = canvas.getContext('2d');
-      const tmp = new Image();
-      tmp.src = img.src;
-      await new Promise(r=> tmp.onload=r);
-      ctx.drawImage(tmp, sx, sy, sw, sh, 0,0, sw, sh);
-      // get blob
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+      result.textContent = 'OCR en cours…';
       canvas.toBlob(async blob => {
         const fd = new FormData();
         fd.append('image', blob, 'crop.png');
         try {
           const res = await fetch('/extract-stats',{method:'POST',body:fd});
-          const j  = await res.json();
+          const j = await res.json();
           if(j.error) throw new Error(j.error);
           harm.value    = j.harmonisation;
           tension.value = j.tension;
           legend.value  = j.legendary;
           calcBtn.click();
-        } catch(err){
-          result.textContent = 'Erreur OCR : '+err.message;
+        } catch(err) {
+          result.textContent = 'Erreur OCR : ' + err.message;
         }
       }, 'image/png');
     });
 
-    calcBtn.addEventListener('click', ()=>{
-      const h=+harm.value, t=+tension.value, l=+legend.value;
-      if(!h||!t||!l) return result.textContent='⚠️ Remplis tout.';
-      const abs=(t/100)*h/l, sil=h*34;
-      result.textContent = `Coût abstrait : ${abs.toFixed(2)} unités\nCoût estimé   : ${sil.toLocaleString()} silver`;
+    calcBtn.addEventListener('click', ()=> {
+      const h = +harm.value, t = +tension.value, l = +legend.value;
+      if(!h||!t||!l) {
+        return result.textContent = '⚠️ Merci de remplir les 3 champs.';
+      }
+      const costAbstract = (t/100)*h/l;
+      const costSilver   = h*34;
+      result.textContent =
+        `Coût abstrait : ${costAbstract.toFixed(2)} unités\n` +
+        `Coût estimé   : ${costSilver.toLocaleString()} silver`;
     });
-
   </script>
 </body>
 </html>
