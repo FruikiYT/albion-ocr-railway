@@ -3,49 +3,57 @@ import express from 'express';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import OpenAI from 'openai';
+import Tesseract from 'tesseract.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const upload = multer();
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
 
-// Sert tout le contenu statique du dossier public
+// Sert le front‑end statique
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) =>
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+);
 
-// Renvoie index.html à la racine
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Endpoint qui reçoit l'image, appelle l'API et renvoie le JSON
+// OCR serveur
 app.post('/extract-stats', upload.single('image'), async (req, res) => {
   try {
-    const b64 = req.file.buffer.toString('base64');
-    const prompt = `
-Voici une capture d'écran d'une arme éveillée d'Albion Online (base64) :
-${b64}
+    const { data: { text } } = await Tesseract.recognize(
+      req.file.buffer,
+      'fra+eng',
+      { logger: () => {} }
+    );
+    const raw = text.replace(/\u00A0/g,' ').replace(/\n/g,' ');
 
-Renvoie-moi STRICTEMENT ce JSON :
-{"harmonisation":<int>,"tension":<float>,"legendary":<int>}
-`;
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-    });
+    // Extraction par regex
+    const findAfter = (key) => {
+      const idx = raw.toLowerCase().indexOf(key.toLowerCase());
+      if (idx < 0) return null;
+      const slice = raw.slice(idx + key.length);
+      const m = slice.match(/(\d[\d\s]*[.,]?\d*)/);
+      return m ? m[1].trim() : null;
+    };
 
-    const content = response.choices[0].message.content;
-    const data = JSON.parse(content);
-    return res.json(data);
+    const hRaw = findAfter('Harmonisation');
+    const tRaw = findAfter('Tension');
+    const mLegend = raw.match(/valeur légendaire\D*?(\d{1,5})/i);
+
+    if (!hRaw || !tRaw || !mLegend) {
+      throw new Error('Valeurs introuvables dans le texte OCR');
+    }
+
+    const harmonisation = parseInt(hRaw.replace(/\D/g,''), 10);
+    const tension      = parseFloat(tRaw.replace(',', '.'));
+    const legendary    = parseInt(mLegend[1], 10);
+
+    return res.json({ harmonisation, tension, legendary });
   } catch (err) {
-    console.error('❌ Serveur error:', err);
+    console.error('OCR server error:', err);
     return res.status(500).json({ error: err.message });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`→ Server listening on http://localhost:${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`→ Server listening on http://localhost:${PORT}`)
+);
