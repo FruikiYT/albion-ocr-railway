@@ -2,110 +2,211 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Awakening Calculator Albion</title>
-  <link href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family:sans-serif; background:#f0f2f5; margin:0; padding:2rem; display:flex; justify-content:center; }
-    .container { max-width:600px; width:100%; background:#fff; padding:1rem; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-    h1 { text-align:center; margin-bottom:1rem; }
-    #drop-zone { border:2px dashed #666; padding:1rem; text-align:center; cursor:pointer; }
-    #image { max-width:100%; display:none; margin-top:1rem; }
-    #crop-btn, #ocr-btn { margin-top:1rem; padding:0.5rem 1rem; }
-    .fields { margin-top:1rem; }
-    .fields label { display:block; margin-top:0.5rem; }
-    .fields input { width:100%; padding:0.5rem; margin-top:0.25rem; }
-    #result { margin-top:1rem; background:#eef; padding:1rem; white-space:pre-wrap; }
-    .footer { text-align:center; margin-top:1rem; color:#666; font-size:0.9rem; }
+    * { box-sizing: border-box; margin:0; padding:0 }
+    body {
+      font-family:'Roboto',sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .card {
+      background:#fff; border-radius:12px; overflow:hidden;
+      box-shadow:0 8px 24px rgba(0,0,0,0.2); width:360px;
+    }
+    .header {
+      background:linear-gradient(135deg,#667eea,#764ba2);
+      color:#fff; text-align:center; padding:1rem;
+    }
+    .header h1 { margin:0; font-size:1.5rem; }
+    .content { padding:1rem; }
+    #drop-zone {
+      border:2px dashed #667eea; border-radius:6px;
+      height:180px; position:relative;
+      background:#f7f9fc; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      color:#667eea; text-align:center;
+    }
+    #drop-zone img {
+      max-width:100%; max-height:100%;
+      user-select:none;
+    }
+    #selection {
+      position:absolute; border:2px solid #ffab00;
+      display:none; pointer-events:none;
+    }
+    .field { margin-top:0.75rem; }
+    .field label {
+      display:block; font-weight:500; margin-bottom:0.25rem; color:#333;
+    }
+    .field input {
+      width:100%; padding:0.5rem; border:1px solid #ccc;
+      border-radius:4px; font-size:1rem;
+    }
+    .buttons {
+      margin-top:0.75rem; display:flex; gap:0.5rem;
+    }
+    .btn {
+      flex:1; padding:0.5rem; background:#667eea; color:#fff;
+      border:none; border-radius:4px; cursor:pointer; font-weight:500;
+    }
+    .btn:disabled { background:#a3bffa; cursor:default; }
+    #result {
+      margin-top:1rem; padding:0.75rem;
+      background:#eef2ff; border-left:4px solid #667eea;
+      font-family:monospace; white-space:pre-wrap; color:#333;
+    }
+    .footer {
+      text-align:center; padding:0.5rem; font-size:0.85rem;
+      background:#f0f4ff; color:#555;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Awakening Calculator</h1>
-    <div id="drop-zone">Glisse ton image ici ou clique</div>
-    <img id="image" />
-    <button id="crop-btn" style="display:none;">Sélectionner zone statistiques et recadrer</button>
-    <button id="ocr-btn" style="display:none;">Analyser le crop (IA)</button>
-    <div class="fields">
-      <label>Harmonisation : <input id="harm" type="number"/></label>
-      <label>Tension (%) : <input id="tension" type="number" step="0.01"/></label>
-      <label>Valeur légendaire : <input id="legend" type="number"/></label>
-      <button id="calc-btn" style="margin-top:1rem;">Calculer</button>
+
+  <div class="card">
+    <div class="header"><h1>Awakening Calculator</h1></div>
+    <div class="content">
+      <div id="drop-zone">Glisse ton image ici<br/>ou clique</div>
+      <div class="field">
+        <label>Harmonisation max</label>
+        <input id="harm" type="number" placeholder="229287"/>
+      </div>
+      <div class="field">
+        <label>Tension (%)</label>
+        <input id="tension" type="number" step="0.01" placeholder="110.23"/>
+      </div>
+      <div class="field">
+        <label>Valeur légendaire</label>
+        <input id="legend" type="number" placeholder="78"/>
+      </div>
+      <div class="buttons">
+        <button class="btn" id="crop-btn" disabled>Crop &amp; Analyser</button>
+        <button class="btn" id="calc-btn">Calculer</button>
+      </div>
+      <div id="result"></div>
     </div>
-    <div id="result"></div>
     <div class="footer">Créé par : Fruiknox</div>
   </div>
 
-  <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <script>
     const drop = document.getElementById('drop-zone');
-    const img = document.getElementById('image');
     const cropBtn = document.getElementById('crop-btn');
-    const ocrBtn = document.getElementById('ocr-btn');
-    let cropper, blob;
+    const calcBtn = document.getElementById('calc-btn');
+    const harm    = document.getElementById('harm');
+    const tension = document.getElementById('tension');
+    const legend  = document.getElementById('legend');
+    const result  = document.getElementById('result');
 
-    // file input hack
+    let img, selection, startX, startY, selW, selH, dragging=false, file;
+
+    // zone drag&drop & click
+    drop.addEventListener('click', ()=> fileInput.click());
+    drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.style.background='#e0e7ff'; });
+    drop.addEventListener('dragleave', ()=> drop.style.background='');
+    drop.addEventListener('drop', e=>{ e.preventDefault(); drop.style.background=''; loadImage(e.dataTransfer.files[0]); });
+
     const fileInput = document.createElement('input');
-    fileInput.type = 'file'; fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
+    fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
     document.body.appendChild(fileInput);
+    fileInput.addEventListener('change', ()=> loadImage(fileInput.files[0]));
 
-    drop.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', ()=> handleFile(fileInput.files[0]));
-
-    drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.style.background='#eee'; });
-    drop.addEventListener('dragleave', ()=>drop.style.background='');
-    drop.addEventListener('drop', e=>{ e.preventDefault(); drop.style.background=''; handleFile(e.dataTransfer.files[0]); });
-
-    function handleFile(file) {
-      img.src = URL.createObjectURL(file);
-      img.style.display = 'block';
-      drop.style.display = 'none';
-      cropBtn.style.display = 'inline-block';
-      ocrBtn.style.display = 'none';
-      if (cropper) cropper.destroy();
-      cropper = new Cropper(img, { viewMode:1, autoCrop:false });
+    function loadImage(f){
+      file = f;
+      drop.innerHTML='';
+      img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      img.onload = ()=> URL.revokeObjectURL(img.src);
+      drop.appendChild(img);
+      // add selection div
+      selection = document.createElement('div');
+      selection.id='selection';
+      drop.appendChild(selection);
+      // enable cropping
+      cropBtn.disabled = false;
+      attachSelection();
     }
 
-    cropBtn.addEventListener('click', () => {
-      const canvas = cropper.getCroppedCanvas();
-      canvas.toBlob(b => {
-        blob = b;
-        // preview the crop
-        img.src = URL.createObjectURL(blob);
-        cropper.destroy();
-        cropper = null;
-        ocrBtn.style.display = 'inline-block';
-        cropBtn.style.display = 'none';
-      });
+    function attachSelection(){
+      drop.addEventListener('mousedown', onMouseDown);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+    function onMouseDown(e){
+      if(!img) return;
+      dragging=true;
+      // relative to drop
+      const rect=drop.getBoundingClientRect();
+      startX = e.clientX - rect.left;
+      startY = e.clientY - rect.top;
+      selection.style.left = startX+'px';
+      selection.style.top  = startY+'px';
+      selection.style.width = '0px';
+      selection.style.height= '0px';
+      selection.style.display='block';
+    }
+    function onMouseMove(e){
+      if(!dragging) return;
+      const rect=drop.getBoundingClientRect();
+      let x = e.clientX - rect.left, y = e.clientY - rect.top;
+      selW = x - startX; selH = y - startY;
+      selection.style.width  = Math.abs(selW) + 'px';
+      selection.style.height = Math.abs(selH) + 'px';
+      selection.style.left   = (selW<0? x: startX)+'px';
+      selection.style.top    = (selH<0? y: startY)+'px';
+    }
+    function onMouseUp(){
+      if(dragging) dragging=false;
+    }
+
+    cropBtn.addEventListener('click', async ()=>{
+      result.textContent='Crop & OCR en cours…';
+      // compute crop coords
+      const rect=drop.getBoundingClientRect();
+      const imgRect=img.getBoundingClientRect();
+      const scaleX = img.naturalWidth  / imgRect.width;
+      const scaleY = img.naturalHeight / imgRect.height;
+      // selection position
+      const sx = (parseFloat(selection.style.left)) * scaleX;
+      const sy = (parseFloat(selection.style.top))  * scaleY;
+      const sw = Math.abs(selW) * scaleX;
+      const sh = Math.abs(selH) * scaleY;
+      // draw to canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = sw; canvas.height = sh;
+      const ctx = canvas.getContext('2d');
+      const tmp = new Image();
+      tmp.src = img.src;
+      await new Promise(r=> tmp.onload=r);
+      ctx.drawImage(tmp, sx, sy, sw, sh, 0,0, sw, sh);
+      // get blob
+      canvas.toBlob(async blob => {
+        const fd = new FormData();
+        fd.append('image', blob, 'crop.png');
+        try {
+          const res = await fetch('/extract-stats',{method:'POST',body:fd});
+          const j  = await res.json();
+          if(j.error) throw new Error(j.error);
+          harm.value    = j.harmonisation;
+          tension.value = j.tension;
+          legend.value  = j.legendary;
+          calcBtn.click();
+        } catch(err){
+          result.textContent = 'Erreur OCR : '+err.message;
+        }
+      }, 'image/png');
     });
 
-    ocrBtn.addEventListener('click', async () => {
-      document.getElementById('result').innerText = 'Analyse IA en cours…';
-      const fd = new FormData();
-      fd.append('image', blob, 'crop.png');
-      try {
-        const res = await fetch('/extract-stats', { method:'POST', body:fd });
-        const json = await res.json();
-        if (json.error) throw new Error(json.error);
-        document.getElementById('harm').value = json.harmonisation;
-        document.getElementById('tension').value = json.tension;
-        document.getElementById('legend').value = json.legendary;
-        document.getElementById('calc-btn').click();
-      } catch (e) {
-        document.getElementById('result').innerText = 'Erreur OCR IA : ' + e.message;
-      }
-    });
-
-    document.getElementById('calc-btn').addEventListener('click', () => {
-      const h = +document.getElementById('harm').value;
-      const t = +document.getElementById('tension').value;
-      const l = +document.getElementById('legend').value;
-      if (!h||!t||!l) return document.getElementById('result').innerText = 'Remplis tout.';
+    calcBtn.addEventListener('click', ()=>{
+      const h=+harm.value, t=+tension.value, l=+legend.value;
+      if(!h||!t||!l) return result.textContent='⚠️ Remplis tout.';
       const abs=(t/100)*h/l, sil=h*34;
-      document.getElementById('result').innerText=
-        `Coût abstrait : ${abs.toFixed(2)} unités\nCoût estimé : ${sil.toLocaleString()} silver`;
+      result.textContent = `Coût abstrait : ${abs.toFixed(2)} unités\nCoût estimé   : ${sil.toLocaleString()} silver`;
     });
+
   </script>
 </body>
 </html>
