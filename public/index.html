@@ -1,132 +1,94 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Awakening Calculator Albion</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0 }
     body {
-      margin: 0;
       font-family: 'Roboto', sans-serif;
-      background: url('https://cdn.albiononline.com/assets/awakened-weapons/wild_blood/bg_awakened.jpg') no-repeat center center/cover;
-      color: #333;
-      position: relative;
-      min-height: 100vh;
+      background: url('https://cdn.albiononline.com/assets/awakened-weapons/wild_blood/bg_awakened.jpg') center/cover no-repeat;
+      position: relative; min-height: 100vh;
     }
     body::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 0;
+      content: ''; position: absolute; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 0;
     }
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 480px;
-      margin: auto;
-      padding: 2rem 1rem;
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 480px; margin: auto; padding: 2rem;
     }
     .card {
-      background: #fff;
-      border-radius: 12px;
+      background: #fff; border-radius: 12px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
       overflow: hidden;
     }
     .header {
       background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      text-align: center;
-      padding: 1.5rem;
+      color: #fff; text-align: center; padding: 1.5rem;
     }
-    .header h1 {
-      margin: 0;
-      font-size: 1.75rem;
-      font-weight: 700;
-    }
+    .header h1 { font-size: 1.75rem; margin: 0; }
     .content {
       padding: 1.5rem;
     }
     .drop-zone {
-      border: 2px dashed #667eea;
-      border-radius: 6px;
-      padding: 1rem;
-      text-align: center;
-      color: #667eea;
-      cursor: pointer;
-      position: relative;
-      transition: background 0.2s;
+      border: 2px dashed #667eea; border-radius: 6px;
+      padding: 1rem; text-align: center; color: #667eea;
+      cursor: pointer; position: relative; background: #f7f9fc;
     }
-    .drop-zone.dragover {
-      background: rgba(102,126,234,0.1);
-    }
+    .drop-zone.dragover { background: rgba(102,126,234,0.1); }
     .drop-zone img {
-      max-width: 100%;
-      max-height: 200px;
-      display: block;
-      margin: 0.5rem auto;
+      max-width: 100%; max-height: 200px;
+      display: block; margin: 0.5rem auto;
       border-radius: 4px;
     }
     .field {
-      margin-bottom: 1rem;
+      margin-top: 1rem;
     }
     .field label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
+      display: block; font-weight: 500; margin-bottom: 0.5rem;
+      color: #2d3748;
     }
     .field input {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      font-size: 1rem;
+      width: 100%; padding: 0.75rem; font-size: 1rem;
+      border: 1px solid #cbd5e0; border-radius: 6px;
       transition: border-color 0.2s;
     }
     .field input:focus {
-      border-color: #667eea;
-      outline: none;
+      border-color: #667eea; outline: none;
     }
     .btn {
-      width: 100%;
-      padding: 0.75rem;
-      background: #667eea;
-      color: white;
-      font-weight: 500;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
+      width: 100%; padding: 0.75rem; margin-top: 1rem;
+      background: #667eea; color: #fff; font-weight: 500;
+      border: none; border-radius: 6px; cursor: pointer;
+      font-size: 1rem; transition: background 0.2s;
+    }
+    .btn:hover { background: #5a67d8; }
+    #manual-btn {
+      width: 100%; padding: 0.5rem; margin-top: 1rem;
+      background: #e2e8f0; color: #2d3748; border: none;
+      border-radius: 6px; cursor: pointer; font-size: 0.9rem;
       transition: background 0.2s;
-      margin-top: 0.5rem;
     }
-    .btn:hover {
-      background: #5a67d8;
-    }
+    #manual-btn:hover { background: #cbd5e0; }
     #result {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      background: #f7fafc;
-      border-left: 4px solid #667eea;
+      margin-top: 1.5rem; padding: 1rem;
+      background: #f7fafc; border-left: 4px solid #667eea;
       border-radius: 0 6px 6px 0;
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      color: #2d3748;
-      font-size: 1rem;
+      font-family: monospace; white-space: pre-wrap;
+      color: #2d3748; font-size: 1rem;
     }
     .footer {
-      text-align: center;
-      padding: 0.75rem;
-      font-size: 0.875rem;
-      color: #718096;
+      text-align: center; padding: 0.75rem;
+      font-size: 0.875rem; color: #718096;
       background: #edf2f7;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="wrapper">
     <div class="card">
       <div class="header">
         <h1>Awakening Calculator</h1>
@@ -137,23 +99,94 @@
         </div>
         <div class="field">
           <label for="harm">Harmonisation max</label>
-          <input id="harm" type="number" placeholder="Ex : 229287">
+          <input id="harm" type="number" placeholder="Ex : 229287"/>
         </div>
         <div class="field">
           <label for="tension">Tension (%)</label>
-          <input id="tension" type="number" step="0.01" placeholder="Ex : 110.23">
+          <input id="tension" type="number" step="0.01" placeholder="Ex : 110.23"/>
         </div>
         <div class="field">
           <label for="legend">Valeur légendaire</label>
-          <input id="legend" type="number" placeholder="Ex : 78">
+          <input id="legend" type="number" placeholder="Ex : 78"/>
         </div>
-        <button class="btn" onclick="calc()">Calculer</button>
+        <button class="btn" id="calc-btn">Calculer</button>
+        <button id="manual-btn">Remplir manuellement</button>
         <div id="result"></div>
       </div>
-      <div class="footer">Créé par : Fruiknox</div>
+      <div class="footer">Créé par : Fruiknox</div>
     </div>
   </div>
 
-  <script src="/index.js"></script>
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const calcBtn = document.getElementById('calc-btn');
+    const manualBtn = document.getElementById('manual-btn');
+    const resultEl = document.getElementById('result');
+    const harmInput = document.getElementById('harm');
+    const tensionInput = document.getElementById('tension');
+    const legendInput = document.getElementById('legend');
+
+    // file input hidden
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    // preview image
+    const imgPreview = document.createElement('img');
+    dropZone.appendChild(imgPreview);
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+    manualBtn.addEventListener('click', () => {
+      resultEl.textContent = 'Mode manuel activé : entre tes valeurs puis clique sur Calculer.';
+    });
+
+    calcBtn.addEventListener('click', () => {
+      const h = parseFloat(harmInput.value);
+      const t = parseFloat(tensionInput.value);
+      const l = parseFloat(legendInput.value);
+      if (!h || !t || !l) {
+        resultEl.textContent = '⚠️ Merci de remplir les 3 champs.';
+        return;
+      }
+      const costAbstract = (t / 100) * h / l;
+      const costSilver = h * 34;
+      resultEl.textContent =
+        `Coût abstrait : ${costAbstract.toFixed(2)} unités\n` +
+        `Coût estimé   : ${costSilver.toLocaleString()} silver`;
+    });
+
+    async function handleFile(file) {
+      imgPreview.src = URL.createObjectURL(file);
+      imgPreview.onload = () => URL.revokeObjectURL(imgPreview.src);
+      resultEl.textContent = 'Analyse IA en cours…';
+      const fd = new FormData();
+      fd.append('image', file);
+      try {
+        const res = await fetch('/extract-stats', { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.error) throw new Error(json.error);
+        harmInput.value = json.harmonisation;
+        tensionInput.value = json.tension;
+        legendInput.value = json.legendary;
+        calcBtn.click();
+      } catch (err) {
+        // try to get server error message
+        let msg = 'Erreur OCR IA';
+        if (err.message) msg = 'Erreur OCR IA : ' + err.message;
+        resultEl.textContent = msg;
+      }
+    }
+  </script>
 </body>
 </html>
