@@ -27,16 +27,20 @@ Voici une capture d'écran d'une arme éveillée d'Albion Online (base64) : ${b6
 Renvoie-moi STRICTEMENT ce JSON :
 {"harmonisation":<int>,"tension":<float>,"legendary":<int>}
 `;
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [{ role: 'user', content: prompt }],
-    });
+const response = await openai.chat.completions.create({
+-  model: 'gpt-4o',
++  model: 'gpt-3.5-turbo',
+   messages: [{ role: 'user', content: prompt }],
+});
     const data = JSON.parse(response.choices[0].message.content);
     return res.json(data);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'OCR IA failed' });
-  }
+} catch (err) {
+-  console.error(err);
+-  return res.status(500).json({ error: 'OCR IA failed' });
++  console.error('❌ Serveur error:', err);
++  // Renvoie le vrai message d'erreur pour debug
++  return res.status(500).json({ error: err.message });
+}
 });
 
 const PORT = process.env.PORT || 3000;
