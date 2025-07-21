@@ -15,36 +15,42 @@ app.get('/', (req, res) =>
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 );
 
-// OCR serveur
+// OCR serveur avec Tesseract.js
 app.post('/extract-stats', upload.single('image'), async (req, res) => {
   try {
-    const { data: { text } } = await Tesseract.recognize(
+    const {
+      data: { text },
+    } = await Tesseract.recognize(
       req.file.buffer,
       'fra+eng',
       { logger: () => {} }
     );
-    const raw = text.replace(/\u00A0/g,' ').replace(/\n/g,' ');
 
-    // Extraction par regex
-    const findAfter = (key) => {
-      const idx = raw.toLowerCase().indexOf(key.toLowerCase());
+    // Normalisation du texte
+    const normalize = (s) => s.replace(/\u00A0/g, ' ').replace(/\n/g, ' ');
+    const raw = normalize(text);
+
+    // Fonction utilitaire pour extraire le nombre après une clé
+    const findAfter = (txt, key) => {
+      const idx = txt.toLowerCase().indexOf(key.toLowerCase());
       if (idx < 0) return null;
-      const slice = raw.slice(idx + key.length);
+      const slice = txt.slice(idx + key.length);
       const m = slice.match(/(\d[\d\s]*[.,]?\d*)/);
       return m ? m[1].trim() : null;
     };
 
-    const hRaw = findAfter('Harmonisation');
-    const tRaw = findAfter('Tension');
-    const mLegend = raw.match(/valeur légendaire\D*?(\d{1,5})/i);
+    // Extraction : on prend d'abord la légendaire, puis harmonisation et tension
+    const lRaw = findAfter(raw, 'Valeur légendaire');
+    const hRaw = findAfter(raw, 'Harmonisation');
+    const tRaw = findAfter(raw, 'Tension');
 
-    if (!hRaw || !tRaw || !mLegend) {
-      throw new Error('Valeurs introuvables dans le texte OCR');
+    if (!lRaw || !hRaw || !tRaw) {
+      throw new Error('Impossible d’extraire toutes les valeurs');
     }
 
-    const harmonisation = parseInt(hRaw.replace(/\D/g,''), 10);
-    const tension      = parseFloat(tRaw.replace(',', '.'));
-    const legendary    = parseInt(mLegend[1], 10);
+    const harmonisation = parseInt(hRaw.replace(/\D/g, ''), 10);
+    const tension = parseFloat(tRaw.replace(',', '.'));
+    const legendary = parseInt(lRaw.replace(/\D/g, ''), 10);
 
     return res.json({ harmonisation, tension, legendary });
   } catch (err) {
