@@ -7,7 +7,13 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "multer": "^1.4.5",
-    "openai": "^4.12.0"
+    "openai": "^4.2.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}
+{
+  // … tes autres champs …
+  "scripts": {
+    "start": "node server.js"
   }
 }
