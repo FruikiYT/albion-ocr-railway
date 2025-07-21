@@ -8,40 +8,44 @@ import OpenAI from 'openai';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const upload = multer();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
-// 1) Sert tous les fichiers statiques de /public
+// Sert tout le contenu statique du dossier public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 2) Force GET / pour renvoyer index.html
+// Renvoie index.html à la racine
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 3) Ton endpoint OCR
+// Endpoint qui reçoit l'image, appelle l'API et renvoie le JSON
 app.post('/extract-stats', upload.single('image'), async (req, res) => {
   try {
     const b64 = req.file.buffer.toString('base64');
     const prompt = `
-Voici une capture d'écran d'une arme éveillée d'Albion Online (base64) : ${b64}
+Voici une capture d'écran d'une arme éveillée d'Albion Online (base64) :
+${b64}
+
 Renvoie-moi STRICTEMENT ce JSON :
 {"harmonisation":<int>,"tension":<float>,"legendary":<int>}
 `;
-const response = await openai.chat.completions.create({
--  model: 'gpt-4o',
-+  model: 'gpt-3.5-turbo',
-   messages: [{ role: 'user', content: prompt }],
-});
-    const data = JSON.parse(response.choices[0].message.content);
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = response.choices[0].message.content;
+    const data = JSON.parse(content);
     return res.json(data);
-} catch (err) {
--  console.error(err);
--  return res.status(500).json({ error: 'OCR IA failed' });
-+  console.error('❌ Serveur error:', err);
-+  // Renvoie le vrai message d'erreur pour debug
-+  return res.status(500).json({ error: err.message });
-}
+  } catch (err) {
+    console.error('❌ Serveur error:', err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`→ Server listening on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`→ Server listening on http://localhost:${PORT}`);
+});
