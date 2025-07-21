@@ -12,99 +12,75 @@
       background: linear-gradient(135deg,#1e3c72,#2a5298);
       min-height:100vh;
       display:flex; align-items:center; justify-content:center;
+      color:#333;
     }
     .card {
-      background:#fff;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 8px 24px rgba(0,0,0,0.2);
-      width:360px;
+      background:#fff; border-radius:12px; overflow:hidden;
+      box-shadow:0 8px 24px rgba(0,0,0,0.2); width:360px; position:relative;
     }
     .header {
       background:linear-gradient(135deg,#667eea,#764ba2);
-      color:#fff;
-      text-align:center;
-      padding:1rem;
+      color:#fff; text-align:center; padding:1rem; position:relative;
     }
-    .header h1 {
-      margin:0;
-      font-size:1.5rem;
+    .header h1 { margin:0; font-size:1.5rem; }
+    /* language selector */
+    #lang-select {
+      position:absolute; top:12px; left:12px;
+      background:rgba(255,255,255,0.3); border:none; color:#fff;
+      padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;
     }
-    .content {
-      padding:1rem;
-    }
+    .content { padding:1rem; }
     #drop-zone {
-      border:2px dashed #667eea;
-      border-radius:6px;
-      height:180px;
-      background:#f7f9fc;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#667eea;
-      text-align:center;
-      margin-bottom:1rem;
+      border:2px dashed #667eea; border-radius:6px;
+      height:180px; background:#f7f9fc; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      color:#667eea; text-align:center; margin-bottom:1rem;
       position:relative;
     }
-    #drop-zone img {
-      max-width:100%;
-      max-height:100%;
-    }
-    .field {
-      margin-bottom:0.75rem;
-    }
-    .field label {
-      display:block;
-      font-weight:500;
-      margin-bottom:0.25rem;
-      color:#333;
-    }
+    #drop-zone:hover { background:#eaf0ff; }
+    #image { max-width:100%; display:none; cursor:crosshair; }
+    .instructions { font-size:0.9rem; color:#555; margin-bottom:0.5rem; }
+    .field { margin-bottom:0.75rem; }
+    .field label { display:block; font-weight:500; margin-bottom:0.25rem; }
     .field input {
-      width:100%;
-      padding:0.5rem;
-      border:1px solid #ccc;
-      border-radius:4px;
-      font-size:1rem;
+      width:100%; padding:0.5rem; border:1px solid #ccc;
+      border-radius:4px; font-size:1rem;
     }
-    .buttons {
-      display:flex;
-      gap:0.5rem;
-      margin-top:0.5rem;
-    }
+    .buttons { display:flex; gap:0.5rem; margin-top:0.5rem; }
     .btn {
-      flex:1;
-      padding:0.5rem;
-      background:#667eea;
-      color:#fff;
-      border:none;
-      border-radius:4px;
-      cursor:pointer;
-      font-weight:500;
+      flex:1; padding:0.5rem; background:#667eea; color:#fff;
+      border:none; border-radius:4px; cursor:pointer; font-weight:500;
       transition:background .2s;
     }
-    .btn:hover {
-      background:#5a67d8;
-    }
-    .btn:disabled {
-      background:#a3bffa;
-      cursor:default;
-    }
+    .btn:hover { background:#5a67d8 }
+    .btn:disabled { background:#a3bffa; cursor:default }
     #result {
-      margin-top:1rem;
-      padding:0.75rem;
-      background:#eef2ff;
-      border-left:4px solid #667eea;
-      font-family:monospace;
-      white-space:pre-wrap;
-      color:#333;
+      margin-top:1rem; padding:0.75rem;
+      background:#eef2ff; border-left:4px solid #667eea;
+      font-family:monospace; white-space:pre-wrap;
     }
     .footer {
-      text-align:center;
-      padding:0.5rem;
-      font-size:0.85rem;
+      text-align:center; padding:0.5rem; font-size:0.85rem;
       background:#f0f4ff;
-      color:#555;
+    }
+    /* selection highlight */
+    #selection {
+      position:absolute; border:2px solid #ffab00; pointer-events:none; display:none;
+    }
+    /* modal help */
+    .modal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5); align-items:center; justify-content:center;
+    }
+    .modal-content {
+      background:#fff; padding:1rem; border-radius:8px; max-width:300px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.2); position:relative;
+    }
+    .modal-content h2 { margin-top:0; }
+    .modal-content ul { margin:0.5rem 0; padding-left:1.2rem; }
+    .modal-close {
+      position:absolute; top:8px; right:8px; background:none; border:none;
+      font-size:1.2rem; cursor:pointer;
     }
   </style>
 </head>
@@ -112,113 +88,281 @@
 
   <div class="card">
     <div class="header">
-      <h1>Awakening Calculator</h1>
+      <select id="lang-select">
+        <option value="fr">FR</option>
+        <option value="en">EN</option>
+      </select>
+      <h1 id="title">Awakening Calculator</h1>
     </div>
     <div class="content">
-      <div id="drop-zone">Glisse ton image ici<br/>ou clique</div>
+      <div id="drop-zone" title="">
+        <span id="drop-text"></span>
+      </div>
+      <img id="image"/>
 
-      <div class="field">
-        <label for="harm">Harmonisation max</label>
-        <input id="harm" type="number" placeholder="229287"/>
-      </div>
-      <div class="field">
-        <label for="tension">Tension (%)</label>
-        <input id="tension" type="number" step="0.01" placeholder="110.23"/>
-      </div>
-      <div class="field">
-        <label for="legend">Valeur légendaire</label>
-        <input id="legend" type="number" placeholder="78"/>
+      <div class="instructions" id="instr" style="display:none;">
+        <span id="step1"></span><br/>
+        <span id="step2"></span><br/>
+        <span id="step3"></span>
       </div>
 
       <div class="buttons">
-        <button class="btn" id="crop-btn" disabled>Crop &amp; Analyser</button>
-        <button class="btn" id="calc-btn">Calculer</button>
+        <button class="btn" id="analyze-btn" title="" disabled><span id="analyze-text"></span></button>
+        <button class="btn" id="reset-btn" title="" disabled><span id="reset-text"></span></button>
+      </div>
+
+      <div class="field">
+        <label for="harm" id="lbl-harm"></label>
+        <input id="harm" type="number" placeholder=""/>
+      </div>
+      <div class="field">
+        <label for="tension" id="lbl-tension"></label>
+        <input id="tension" type="number" step="0.01" placeholder=""/>
+      </div>
+      <div class="field">
+        <label for="legend" id="lbl-legend"></label>
+        <input id="legend" type="number" placeholder=""/>
+      </div>
+
+      <div class="buttons">
+        <button class="btn" id="calc-btn" title=""><span id="calc-text"></span></button>
       </div>
 
       <div id="result"></div>
     </div>
-    <div class="footer">Créé par : Fruiknox</div>
+    <div class="footer"><span id="footer-text"></span></div>
+  </div>
+
+  <!-- Help modal -->
+  <div class="modal" id="help-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="helpModal.style.display='none'">✕</button>
+      <h2 id="help-title"></h2>
+      <ul>
+        <li id="help-1"></li>
+        <li id="help-2"></li>
+        <li id="help-3"></li>
+        <li id="help-4"></li>
+      </ul>
+    </div>
   </div>
 
   <script>
-    const drop    = document.getElementById('drop-zone');
-    const cropBtn = document.getElementById('crop-btn');
-    const calcBtn = document.getElementById('calc-btn');
-    const harm    = document.getElementById('harm');
-    const tension = document.getElementById('tension');
-    const legend  = document.getElementById('legend');
-    const result  = document.getElementById('result');
-    let img, file;
+    // Traductions
+    const T = {
+      fr: {
+        drop: "Glisse ou clique pour importer ton screenshot",
+        step1: "1) Clique en haut‑gauche de “Statistiques”",
+        step2: "2) Clique en bas‑droite de “Statistiques”",
+        step3: "3) Clique sur Analyser",
+        analyze: "Analyser",
+        reset: "Réinitialiser",
+        lblHarm: "Harmonisation max",
+        lblTension: "Tension (%)",
+        lblLegend: "Valeur légendaire",
+        calc: "Calculer",
+        footer: "Créé par : Fruiknox",
+        helpTitle: "Comment utiliser",
+        help1: "Importer votre capture d’écran",
+        help2: "Sélectionner la zone Statistiques (2 clics)",
+        help3: "Analyser pour extraire les chiffres",
+        help4: "Calculer pour obtenir le coût",
+      },
+      en: {
+        drop: "Drag or click to upload your screenshot",
+        step1: "1) Click top‑left of the “Statistics” box",
+        step2: "2) Click bottom‑right of the “Statistics” box",
+        step3: "3) Click Analyze",
+        analyze: "Analyze",
+        reset: "Reset",
+        lblHarm: "Max Harmonization",
+        lblTension: "Tension (%)",
+        lblLegend: "Legendary value",
+        calc: "Calculate",
+        footer: "Created by : Fruiknox",
+        helpTitle: "How to use",
+        help1: "Upload your screenshot",
+        help2: "Select the Statistics area (2 clicks)",
+        help3: "Analyze to extract numbers",
+        help4: "Calculate to get the cost",
+      }
+    };
 
-    // input file caché
+    // Init UI elements
+    const langSelect = document.getElementById('lang-select');
+    const elems = {
+      dropText: document.getElementById('drop-text'),
+      step1:    document.getElementById('step1'),
+      step2:    document.getElementById('step2'),
+      step3:    document.getElementById('step3'),
+      analyze:  document.getElementById('analyze-text'),
+      reset:    document.getElementById('reset-text'),
+      lblHarm:  document.getElementById('lbl-harm'),
+      lblTension: document.getElementById('lbl-tension'),
+      lblLegend:  document.getElementById('lbl-legend'),
+      calc:       document.getElementById('calc-text'),
+      footer:     document.getElementById('footer-text'),
+      helpTitle:  document.getElementById('help-title'),
+      help1:      document.getElementById('help-1'),
+      help2:      document.getElementById('help-2'),
+      help3:      document.getElementById('help-3'),
+      help4:      document.getElementById('help-4'),
+    };
+    const helpModal = document.getElementById('help-modal');
+    const helpIcon  = document.querySelector('.help-icon');
+
+    function setLanguage(lang) {
+      const t = T[lang];
+      elems.dropText.textContent    = t.drop;
+      elems.step1.textContent       = t.step1;
+      elems.step2.textContent       = t.step2;
+      elems.step3.textContent       = t.step3;
+      elems.analyze.textContent     = t.analyze;
+      elems.reset.textContent       = t.reset;
+      elems.lblHarm.textContent     = t.lblHarm;
+      elems.lblTension.textContent  = t.lblTension;
+      elems.lblLegend.textContent   = t.lblLegend;
+      elems.calc.textContent        = t.calc;
+      elems.footer.textContent      = t.footer;
+      elems.helpTitle.textContent   = t.helpTitle;
+      elems.help1.textContent       = t.help1;
+      elems.help2.textContent       = t.help2;
+      elems.help3.textContent       = t.help3;
+      elems.help4.textContent       = t.help4;
+      document.documentElement.lang = lang;
+    }
+
+    // langue par défaut
+    setLanguage(langSelect.value);
+    langSelect.addEventListener('change', e => setLanguage(e.target.value));
+
+    // help modal
+    helpIcon.addEventListener('click', () => helpModal.style.display = 'flex');
+    helpModal.addEventListener('click', e => {
+      if (e.target === helpModal) helpModal.style.display = 'none';
+    });
+
+
+    // --- OCR + cropping 2 clics ---
+    const drop = document.getElementById('drop-zone');
+    const img  = document.getElementById('image');
+    const instr = document.getElementById('instr');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const resetBtn   = document.getElementById('reset-btn');
+    const calcBtn    = document.getElementById('calc-btn');
+    const harmIn     = document.getElementById('harm');
+    const tensionIn  = document.getElementById('tension');
+    const legendIn   = document.getElementById('legend');
+    const resultEl   = document.getElementById('result');
+
+    let coords = [], file;
+
     const fileInput = document.createElement('input');
-    fileInput.type = 'file';
+    fileInput.type   = 'file';
     fileInput.accept = 'image/*';
     fileInput.style.display = 'none';
     document.body.appendChild(fileInput);
 
     drop.addEventListener('click',   () => fileInput.click());
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.background='#e0e7ff'; });
-    drop.addEventListener('dragleave', () => drop.style.background='');
+    drop.addEventListener('dragleave',()=> drop.style.background='');
     drop.addEventListener('drop',    e => { e.preventDefault(); drop.style.background=''; handleFile(e.dataTransfer.files[0]); });
-    fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+    fileInput.addEventListener('change', ()=> handleFile(fileInput.files[0]));
 
     function handleFile(f) {
-      file = f;
-      drop.innerHTML = '';
-      img = new Image();
+      file = f; coords = [];
+      drop.style.display = 'none';
       img.src = URL.createObjectURL(f);
-      img.style.maxWidth = '100%';
-      drop.appendChild(img);
-      cropBtn.disabled = false;
-      result.textContent = '';
+      img.style.display = 'block';
+      instr.style.display = 'block';
+      analyzeBtn.disabled = true;
+      resetBtn.disabled   = false;
+      resultEl.textContent = '';
+      img.addEventListener('click', onImgClick);
     }
 
-    cropBtn.addEventListener('click', async () => {
-      result.textContent = 'Rognage auto…';
-      // attendre chargement image
-      await new Promise(r => img.complete ? r() : img.onload = r);
+    function onImgClick(e) {
+      const rect = img.getBoundingClientRect();
+      const x = e.clientX - rect.left, y = e.clientY - rect.top;
+      coords.push({ x, y });
+      drawSelection();
+      if (coords.length === 2) {
+        img.removeEventListener('click', onImgClick);
+        analyzeBtn.disabled = false;
+      }
+    }
 
-      const W = img.naturalWidth, H = img.naturalHeight;
-      // ajuster ici la zone exacte des statistiques
-      // par exemple : x=30%W→y=55%H→w=40%W→h=25%H
-      const sx = 0.30 * W, sy = 0.55 * H;
-      const sw = 0.40 * W, sh = 0.25 * H;
+    function drawSelection() {
+      let sel = document.getElementById('selection');
+      if (!sel) {
+        sel = document.createElement('div');
+        sel.id = 'selection';
+        document.body.appendChild(sel);
+      }
+      if (coords.length < 1) { sel.style.display = 'none'; return; }
+      const [a, b] = coords;
+      const rImg = img.getBoundingClientRect();
+      const left  = rImg.left + Math.min(a.x, b.x);
+      const top   = rImg.top  + Math.min(a.y, b.y);
+      const width = Math.abs(a.x - b.x), height = Math.abs(a.y - b.y);
+      sel.style.display = 'block';
+      sel.style.left   = left  + 'px';
+      sel.style.top    = top   + 'px';
+      sel.style.width  = width + 'px';
+      sel.style.height = height+ 'px';
+    }
+
+    analyzeBtn.addEventListener('click', async () => {
+      resultEl.textContent = T[langSelect.value].analyze + '…';
+      const [a,b] = coords;
+      const scaleX = img.naturalWidth  / img.width;
+      const scaleY = img.naturalHeight / img.height;
+      const X = Math.min(a.x,b.x) * scaleX;
+      const Y = Math.min(a.y,b.y) * scaleY;
+      const W = Math.abs(a.x-b.x) * scaleX;
+      const H = Math.abs(a.y-b.y) * scaleY;
 
       const canvas = document.createElement('canvas');
-      canvas.width  = sw;
-      canvas.height = sh;
+      canvas.width  = W; canvas.height = H;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+      const tmp = new Image(); tmp.src = img.src;
+      await new Promise(r=> tmp.onload = r);
+      ctx.drawImage(tmp, X, Y, W, H, 0, 0, W, H);
 
-      result.textContent = 'OCR IA en cours…';
-      // JPEG compressé pour limiter tokens
       canvas.toBlob(async blob => {
-        const fd = new FormData();
-        fd.append('image', blob, 'crop.jpg');
+        const fd = new FormData(); fd.append('image', blob, 'stats.png');
         try {
-          const res = await fetch('/extract-stats', { method:'POST', body:fd });
+          const res = await fetch('/extract-stats',{ method:'POST', body:fd });
           const j   = await res.json();
           if (j.error) throw new Error(j.error);
-          harm.value    = j.harmonisation;
-          tension.value = j.tension;
-          legend.value  = j.legendary;
+          harmIn.value    = j.harmonisation;
+          tensionIn.value = j.tension;
+          legendIn.value  = j.legendary;
           calcBtn.click();
         } catch(err) {
-          result.textContent = 'Erreur OCR : ' + err.message;
+          resultEl.textContent = '❌ ' + err.message;
         }
-      }, 'image/jpeg', 0.7);
+      }, 'image/png');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      coords = []; drawSelection();
+      analyzeBtn.disabled = true; resetBtn.disabled = true;
+      img.style.display   = 'none'; drop.style.display = 'flex';
+      fileInput.value     = '';
+      instr.style.display = 'none';
+      resultEl.textContent= '';
     });
 
     calcBtn.addEventListener('click', () => {
-      const h = +harm.value, t = +tension.value, l = +legend.value;
-      if (!h || !t || !l) {
-        result.textContent = '⚠️ Merci de remplir les 3 champs.';
+      const h = +harmIn.value, t = +tensionIn.value, l = +legendIn.value;
+      if (!h||!t||!l) {
+        resultEl.textContent = '⚠️ ' + T[langSelect.value].drop;
         return;
       }
-      const costAbs = (t/100) * h / l;
-      const costSil = h * 34;
-      result.textContent =
+      const costAbs = (t/100)*h/l;
+      const costSil = h*34;
+      resultEl.textContent =
         `Coût abstrait : ${costAbs.toFixed(2)} unités\n` +
         `Coût estimé   : ${costSil.toLocaleString()} silver`;
     });
