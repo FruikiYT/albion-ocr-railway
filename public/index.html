@@ -6,15 +6,15 @@
   <title>Awakening Calculator Albion</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
-    /* Background animé */
+    * { box-sizing:border-box; margin:0; padding:0 }
     body {
-      margin:0; padding:0;
       font-family:'Roboto',sans-serif;
-      background: linear-gradient(135deg, #1e3c72, #2a5298, #667eea, #764ba2);
+      background: linear-gradient(135deg,#1e3c72,#2a5298);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       display:flex; align-items:center; justify-content:center;
-      min-height:100vh; color:#333;
+      min-height:100vh;
+      color:#333;
     }
     @keyframes gradientBG {
       0%{background-position:0% 50%}
@@ -46,30 +46,25 @@
 
     .content { padding:1rem; }
 
-    /* Démo de crop */
+    /* Démo de crop épuré */
     .demo {
-      position:relative; margin-bottom:1rem;
-      border:1px solid #ccc; border-radius:6px; overflow:hidden;
+      position: relative; margin-bottom: 1rem;
+      border: 1px solid #ccc; border-radius: 6px; overflow: hidden;
+      background: #f7f7f7;
     }
     .demo img {
-      display:block; width:100%; height:auto;
+      display: block; width: 100%; height: auto;
     }
     .demo .overlay {
-      position:absolute; top:35%; left:30%;
-      width:40%; height:25%;
-      border:2px solid #ffab00;
-      box-shadow: 0 0 8px rgba(255,171,0,0.7);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
+      position: absolute; top: 35%; left: 30%;
+      width: 40%; height: 25%;
+      border: 2px solid #ffab00;
     }
     .demo .caption {
-      position:absolute; top:5px; left:50%; transform:translateX(-50%);
-      background:rgba(0,0,0,0.6); color:#fff; padding:0.2rem 0.5rem;
-      font-size:0.85rem; border-radius:4px;
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.9); color: #333;
+      padding: 4px 8px; border-radius: 4px;
+      font-size: 0.9rem; font-weight: 500;
     }
 
     #drop-zone {
@@ -80,17 +75,13 @@
       position:relative;
     }
     #drop-zone:hover { background:#eaf0ff; }
-    #image {
-      max-width:100%; display:none; cursor:crosshair;
-    }
+    #image { max-width:100%; display:none; cursor:crosshair; }
 
     .instructions {
       font-size:0.9rem; color:#555; margin-bottom:0.5rem;
     }
     .field { margin-bottom:0.75rem; }
-    .field label {
-      display:block; font-weight:500; margin-bottom:0.25rem;
-    }
+    .field label { display:block; font-weight:500; margin-bottom:0.25rem; }
     .field input {
       width:100%; padding:0.5rem; border:1px solid #ccc;
       border-radius:4px; font-size:1rem;
@@ -137,12 +128,12 @@
 <body>
 
   <div class="card">
-    <!-- Sélecteur de langue -->
+    <!-- Langue -->
     <select id="lang-select" title="Changer la langue">
       <option value="fr">FR</option>
       <option value="en">EN</option>
     </select>
-    <!-- Icône d'aide -->
+    <!-- Aide -->
     <svg class="help-icon" title="Comment ça marche ?" viewBox="0 0 24 24" fill="#fff">
       <circle cx="12" cy="12" r="10" fill="#fff"/>
       <text x="12" y="17" text-anchor="middle" font-size="14" fill="#667eea">i</text>
@@ -153,27 +144,27 @@
     </div>
     <div class="content">
 
-      <!-- Démo de crop -->
+      <!-- Démo -->
       <div class="demo">
-        <div class="caption" id="demo-caption">Exemple de sélection</div>
         <img src="assets/demo.png" alt="Exemple de recadrage"/>
         <div class="overlay"></div>
+        <div class="caption" id="demo-caption">Exemple de sélection</div>
       </div>
 
-      <!-- Zone de drop/upload -->
+      <!-- Drop zone -->
       <div id="drop-zone" title="">
         <span id="drop-text"></span>
       </div>
       <img id="image"/>
 
-      <!-- Instructions simplifiées -->
+      <!-- Instructions -->
       <div class="instructions" id="instr" style="display:none;">
         <span id="step1"></span><br/>
         <span id="step2"></span><br/>
         <span id="step3"></span>
       </div>
 
-      <!-- Boutons d'action -->
+      <!-- Actions -->
       <div class="buttons">
         <button class="btn" id="analyze-btn" title="" disabled>
           <span id="analyze-text"></span>
@@ -183,7 +174,7 @@
         </button>
       </div>
 
-      <!-- Champs de résultat -->
+      <!-- Champs -->
       <div class="field">
         <label for="harm" id="lbl-harm"></label>
         <input id="harm" type="number" placeholder="" title="Valeur extraite ou manuelle"/>
@@ -197,20 +188,20 @@
         <input id="legend" type="number" placeholder="" title="Valeur extraite ou manuelle"/>
       </div>
 
-      <!-- Bouton calcul -->
+      <!-- Calcul -->
       <div class="buttons">
         <button class="btn" id="calc-btn" title="">
           <span id="calc-text"></span>
         </button>
       </div>
 
-      <!-- Sortie -->
+      <!-- Résultat -->
       <div id="result"></div>
     </div>
     <div class="footer"><span id="footer-text"></span></div>
   </div>
 
-  <!-- Modal d'aide -->
+  <!-- Modal -->
   <div class="modal" id="help-modal">
     <div class="modal-content">
       <button class="modal-close" onclick="helpModal.style.display='none'">✕</button>
@@ -225,205 +216,17 @@
   </div>
 
   <script>
-    // Traductions FR/EN
-    const T = {
-      fr: {
-        drop: "Glisse ou clique pour importer ton screenshot",
-        step1: "1) Clique en haut‑gauche de “Statistiques”",
-        step2: "2) Clique en bas‑droite de “Statistiques”",
-        step3: "3) Clique sur Analyser",
-        analyze: "Analyser",
-        reset: "Réinitialiser",
-        lblHarm: "Harmonisation max",
-        lblTension: "Tension (%)",
-        lblLegend: "Valeur légendaire",
-        calc: "Calculer",
-        footer: "Créé par : Fruiknox",
-        helpTitle: "Comment utiliser",
-        help1: "Importer votre capture d’écran",
-        help2: "Sélectionner la zone Statistiques (2 clics)",
-        help3: "Analyser pour extraire les chiffres",
-        help4: "Calculer pour obtenir le coût",
-        demoCaption: "Exemple de sélection",
-      },
-      en: {
-        drop: "Drag or click to upload your screenshot",
-        step1: "1) Click top‑left of the “Statistics” box",
-        step2: "2) Click bottom‑right of the “Statistics” box",
-        step3: "3) Click Analyze",
-        analyze: "Analyze",
-        reset: "Reset",
-        lblHarm: "Max Harmonization",
-        lblTension: "Tension (%)",
-        lblLegend: "Legendary value",
-        calc: "Calculate",
-        footer: "Created by : Fruiknox",
-        helpTitle: "How to use",
-        help1: "Upload your screenshot",
-        help2: "Select the Statistics area (2 clicks)",
-        help3: "Analyze to extract numbers",
-        help4: "Calculate to get the cost",
-        demoCaption: "Selection example",
-      }
-    };
-
-    // UI refs
-    const langSelect = document.getElementById('lang-select');
-    const helpIcon   = document.querySelector('.help-icon');
-    const helpModal  = document.getElementById('help-modal');
-    const elems = {
-      dropText:   document.getElementById('drop-text'),
-      step1:      document.getElementById('step1'),
-      step2:      document.getElementById('step2'),
-      step3:      document.getElementById('step3'),
-      analyze:    document.getElementById('analyze-text'),
-      reset:      document.getElementById('reset-text'),
-      lblHarm:    document.getElementById('lbl-harm'),
-      lblTension: document.getElementById('lbl-tension'),
-      lblLegend:  document.getElementById('lbl-legend'),
-      calc:       document.getElementById('calc-text'),
-      footer:     document.getElementById('footer-text'),
-      helpTitle:  document.getElementById('help-title'),
-      help1:      document.getElementById('help-1'),
-      help2:      document.getElementById('help-2'),
-      help3:      document.getElementById('help-3'),
-      help4:      document.getElementById('help-4'),
-      demoCaption:document.querySelector('.demo .caption'),
-    };
-
-    function setLanguage(lang){
-      const t = T[lang];
-      elems.dropText.textContent   = t.drop;
-      elems.step1.textContent      = t.step1;
-      elems.step2.textContent      = t.step2;
-      elems.step3.textContent      = t.step3;
-      elems.analyze.textContent    = t.analyze;
-      elems.reset.textContent      = t.reset;
-      elems.lblHarm.textContent    = t.lblHarm;
-      elems.lblTension.textContent = t.lblTension;
-      elems.lblLegend.textContent  = t.lblLegend;
-      elems.calc.textContent       = t.calc;
-      elems.footer.textContent     = t.footer;
-      elems.helpTitle.textContent  = t.helpTitle;
-      elems.help1.textContent      = t.help1;
-      elems.help2.textContent      = t.help2;
-      elems.help3.textContent      = t.help3;
-      elems.help4.textContent      = t.help4;
-      elems.demoCaption.textContent= t.demoCaption;
-      document.documentElement.lang = lang;
-    }
-
-    // init
-    setLanguage(langSelect.value);
-    langSelect.addEventListener('change', e => setLanguage(e.target.value));
-
-    // help modal
-    helpIcon.addEventListener('click', ()=> helpModal.style.display='flex');
-    helpModal.addEventListener('click', e=>{ if(e.target===helpModal) helpModal.style.display='none'; });
-
-    // OCR deux‑clics
-    const drop       = document.getElementById('drop-zone');
-    const img        = document.getElementById('image');
-    const instr      = document.getElementById('instr');
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const resetBtn   = document.getElementById('reset-btn');
-    const calcBtn    = document.getElementById('calc-btn');
-    const harmIn     = document.getElementById('harm');
-    const tensionIn  = document.getElementById('tension');
-    const legendIn   = document.getElementById('legend');
-    const resultEl   = document.getElementById('result');
-    let coords = [], file;
-
-    // file input
-    const fileInput = document.createElement('input');
-    fileInput.type   = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
-    document.body.appendChild(fileInput);
-
-    drop.addEventListener('click',   ()=> fileInput.click());
-    drop.addEventListener('dragover',e=>{ e.preventDefault(); });
-    drop.addEventListener('dragenter',e=>{ e.preventDefault(); drop.style.background='#eaf0ff'; });
-    drop.addEventListener('dragleave',()=> drop.style.background='');
-    drop.addEventListener('drop',    e=>{ e.preventDefault(); drop.style.background=''; handleFile(e.dataTransfer.files[0]); });
-    fileInput.addEventListener('change', ()=> handleFile(fileInput.files[0]));
-
-    function handleFile(f){
-      file = f; coords = [];
-      drop.style.display = 'none';
-      img.src = URL.createObjectURL(f);
-      img.style.display = 'block';
-      instr.style.display = 'block';
-      analyzeBtn.disabled = true; resetBtn.disabled = false;
-      resultEl.textContent = '';
-      img.addEventListener('click', onImgClick);
-    }
-
-    function onImgClick(e){
-      const r = img.getBoundingClientRect();
-      coords.push({ x:e.clientX-r.left, y:e.clientY-r.top });
-      drawSelection();
-      if(coords.length===2){
-        img.removeEventListener('click', onImgClick);
-        analyzeBtn.disabled = false;
-      }
-    }
-
-    function drawSelection(){
-      let sel = document.getElementById('selection');
-      if(!sel){
-        sel = document.createElement('div');
-        sel.id = 'selection';
-        document.body.appendChild(sel);
-      }
-      if(coords.length===0){ sel.style.display='none'; return; }
-      const [a,b] = coords;
-      const rImg = img.getBoundingClientRect(), rBody=document.body.getBoundingClientRect();
-      const left = rImg.left + Math.min(a.x,b.x), top = rImg.top + Math.min(a.y,b.y);
-      const w=Math.abs(a.x-b.x), h=Math.abs(a.y-b.y);
-      sel.style.display='block';
-      sel.style.left = left+'px'; sel.style.top = top+'px';
-      sel.style.width=w+'px'; sel.style.height=h+'px';
-    }
-
-    analyzeBtn.addEventListener('click', async ()=>{
-      resultEl.textContent = '⏳ '+T[langSelect.value].analyze+'…';
-      const [a,b] = coords;
-      const scaleX = img.naturalWidth/img.width, scaleY=img.naturalHeight/img.height;
-      const X=Math.min(a.x,b.x)*scaleX, Y=Math.min(a.y,b.y)*scaleY;
-      const W=Math.abs(a.x-b.x)*scaleX,  H=Math.abs(a.y-b.y)*scaleY;
-      const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-      const ctx=canvas.getContext('2d'), tmp=new Image(); tmp.src=img.src;
-      await new Promise(r=>tmp.onload=r);
-      ctx.drawImage(tmp,X,Y,W,H,0,0,W,H);
-      canvas.toBlob(async blob=>{
-        const fd=new FormData(); fd.append('image',blob,'stats.png');
-        try{
-          const res=await fetch('/extract-stats',{method:'POST',body:fd});
-          const j=await res.json(); if(j.error) throw new Error(j.error);
-          harmIn.value=j.harmonisation;
-          tensionIn.value=j.tension;
-          legendIn.value=j.legendary;
-          calcBtn.click();
-        }catch(e){
-          resultEl.textContent='❌ '+e.message;
-        }
-      },'image/png');
-    });
-
-    resetBtn.addEventListener('click', ()=>{
-      coords=[]; drawSelection();
-      analyzeBtn.disabled=true; resetBtn.disabled=true;
-      img.style.display='none'; drop.style.display='flex';
-      fileInput.value=''; instr.style.display='none'; resultEl.textContent='';
-    });
-
-    calcBtn.addEventListener('click', ()=>{
-      const h=+harmIn.value, t=+tensionIn.value, l=+legendIn.value;
-      if(!h||!t||!l) return resultEl.textContent='⚠️ '+T[langSelect.value].drop;
-      const ca=(t/100)*h/l, cs=h*34;
-      resultEl.textContent = `Coût abstrait : ${ca.toFixed(2)} unités\nCoût estimé   : ${cs.toLocaleString()} silver`;
-    });
+    const T = {fr:{drop:"Glisse ou clique pour importer ton screenshot",step1:"1) Clique en haut‑gauche de “Statistiques”",step2:"2) Clique en bas‑droite de “Statistiques”",step3:"3) Clique sur Analyser",analyze:"Analyser",reset:"Réinitialiser",lblHarm:"Harmonisation max",lblTension:"Tension (%)",lblLegend:"Valeur légendaire",calc:"Calculer",footer:"Créé par : Fruiknox",helpTitle:"Comment utiliser",help1:"Importer votre capture d’écran",help2:"Sélectionner la zone Statistiques (2 clics)",help3:"Analyser pour extraire les chiffres",help4:"Calculer pour obtenir le coût",demoCaption:"Exemple de sélection"},en:{drop:"Drag or click to upload your screenshot",step1:"1) Click top‑left of the “Statistics” box",step2:"2) Click bottom‑right of the “Statistics” box",step3:"3) Click Analyze",analyze:"Analyze",reset:"Reset",lblHarm:"Max Harmonization",lblTension:"Tension (%)",lblLegend:"Legendary value",calc:"Calculate",footer:"Created by : Fruiknox",helpTitle:"How to use",help1:"Upload your screenshot",help2:"Select the Statistics area (2 clicks)",help3:"Analyze to extract numbers",help4:"Calculate to get the cost",demoCaption:"Selection example"}};
+    const langSelect=document.getElementById('lang-select'),helpIcon=document.querySelector('.help-icon'),helpModal=document.getElementById('help-modal');
+    const elems={dropText:document.getElementById('drop-text'),step1:document.getElementById('step1'),step2:document.getElementById('step2'),step3:document.getElementById('step3'),analyze:document.getElementById('analyze-text'),reset:document.getElementById('reset-text'),lblHarm:document.getElementById('lbl-harm'),lblTension:document.getElementById('lbl-tension'),lblLegend:document.getElementById('lbl-legend'),calc:document.getElementById('calc-text'),footer:document.getElementById('footer-text'),helpTitle:document.getElementById('help-title'),help1:document.getElementById('help-1'),help2:document.getElementById('help-2'),help3:document.getElementById('help-3'),help4:document.getElementById('help-4'),demoCaption:document.querySelector('.demo .caption')};
+    function setLanguage(l){const t=T[l];for(const k in elems)elems[k].textContent=t[k];document.documentElement.lang=l;}setLanguage(langSelect.value);langSelect.addEventListener('change',e=>setLanguage(e.target.value));helpIcon.addEventListener('click',()=>helpModal.style.display='flex');helpModal.addEventListener('click',e=>{if(e.target===helpModal)helpModal.style.display='none';});
+    const drop=document.getElementById('drop-zone'),img=document.getElementById('image'),instr=document.getElementById('instr'),analyzeBtn=document.getElementById('analyze-btn'),resetBtn=document.getElementById('reset-btn'),calcBtn=document.getElementById('calc-btn'),harmIn=document.getElementById('harm'),tensionIn=document.getElementById('tension'),legendIn=document.getElementById('legend'),resultEl=document.getElementById('result');let coords=[],file;const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/*';fileInput.style.display='none';document.body.appendChild(fileInput);
+    drop.addEventListener('click',()=>fileInput.click());drop.addEventListener('dragover',e=>{e.preventDefault();});drop.addEventListener('dragenter',e=>{e.preventDefault();drop.style.background='#eaf0ff';});drop.addEventListener('dragleave',()=>drop.style.background='');drop.addEventListener('drop',e=>{e.preventDefault();drop.style.background='';handleFile(e.dataTransfer.files[0]);});fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
+    function handleFile(f){file=f;coords=[];drop.style.display='none';img.src=URL.createObjectURL(f);img.style.display='block';instr.style.display='block';analyzeBtn.disabled=true;resetBtn.disabled=false;resultEl.textContent='';img.addEventListener('click',onImgClick);}function onImgClick(e){const r=img.getBoundingClientRect();coords.push({x:e.clientX-r.left,y:e.clientY-r.top});drawSelection();if(coords.length===2){img.removeEventListener('click',onImgClick);analyzeBtn.disabled=false;}}function drawSelection(){let sel=document.getElementById('selection');if(!sel){sel=document.createElement('div');sel.id='selection';document.body.appendChild(sel);}if(coords.length<1){sel.style.display='none';return;}const[a,b]=coords;const r=img.getBoundingClientRect();const left=r.left+Math.min(a.x,b.x),top=r.top+Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);sel.style.display='block';sel.style.left=left+'px';sel.style.top=top+'px';sel.style.width=w+'px';sel.style.height=h+'px';}
+    analyzeBtn.addEventListener('click',async()=>{resultEl.textContent='⏳ '+T[langSelect.value].analyze+'…';const[a,b]=coords;const scaleX=img.naturalWidth/img.width,scaleY=img.naturalHeight/img.height;const X=Math.min(a.x,b.x)*scaleX,Y=Math.min(a.y,b.y)*scaleY,W=Math.abs(a.x-b.x)*scaleX,H=Math.abs(a.y-b.y)*scaleY;const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),tmp=new Image();tmp.src=img.src;await new Promise(r=>tmp.onload=r);ctx.drawImage(tmp,X,Y,W,H,0,0,W,H);canvas.toBlob(async blob=>{const fd=new FormData();fd.append('image',blob,'stats.png');try{const res=await fetch('/extract-stats',{method:'POST',body:fd});const j=await res.json();if(j.error)throw new Error(j.error);harmIn.value=j.harmonisation;tensionIn.value=j.tension;legendIn.value=j.legendary;calcBtn.click();}catch(e){resultEl.textContent='❌ '+e.message;}},'image/png');});
+    resetBtn.addEventListener('click',()=>{coords=[];drawSelection();analyzeBtn.disabled=true;resetBtn.disabled=true;img.style.display='none';drop.style.display='flex';fileInput.value='';instr.style.display='none';resultEl.textContent='';});
+    calcBtn.addEventListener('click',()=>{const h=+harmIn.value,t=+tensionIn.value,l=+legendIn.value;if(!h||!t||!l){resultEl.textContent='⚠️ '+T[langSelect.value].drop;return;}const ca=(t/100)*h/l,cs=h*34;resultEl.textContent=`Coût abstrait : ${ca.toFixed(2)} unités
+Coût estimé   : ${cs.toLocaleString()} silver`;});
   </script>
 
 </body>
