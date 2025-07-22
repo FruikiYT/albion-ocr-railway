@@ -47,12 +47,10 @@
       border:1px solid #ccc; border-radius:6px; background:#f7f7f7;
       overflow:hidden;
     }
-    .demo img {
-      width:100%; display:block;
-    }
+    .demo img { width:100%; display:block }
     .demo .overlay {
-      position:absolute; top:35%; left:30%;
-      width:40%; height:25%; border:2px solid #ffab00;
+      position:absolute; top:35%; left:30%; width:40%; height:25%;
+      border:2px solid #ffab00;
     }
     .demo .caption {
       position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
@@ -67,13 +65,9 @@
     }
     #drop-zone:hover { background:#eaf0ff }
     #image { max-width:100%; display:none; cursor:crosshair }
-    .instructions {
-      font-size:0.9rem; color:#555; margin-bottom:0.5rem;
-    }
+    .instructions { font-size:0.9rem; color:#555; margin-bottom:0.5rem }
     .field { margin-bottom:0.75rem }
-    .field label {
-      display:block; font-weight:500; margin-bottom:0.25rem;
-    }
+    .field label { display:block; font-weight:500; margin-bottom:0.25rem }
     .field input {
       width:100%; padding:0.5rem; border:1px solid #ccc;
       border-radius:4px; font-size:1rem;
@@ -91,14 +85,8 @@
       background:#eef2ff; border-left:4px solid #667eea;
       font-family:monospace; white-space:pre-wrap;
     }
-    .footer {
-      text-align:center; padding:0.5rem; font-size:0.85rem;
-      background:#f0f4ff;
-    }
-    #selection {
-      position:absolute; border:2px solid #ffab00;
-      pointer-events:none; display:none;
-    }
+    .footer { text-align:center; padding:0.5rem; font-size:0.85rem; background:#f0f4ff }
+    #selection { position:absolute; border:2px solid #ffab00; pointer-events:none; display:none }
     .modal {
       display:none; position:fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(0,0,0,0.5); align-items:center; justify-content:center;
@@ -163,7 +151,7 @@
       </div>
       <div class="field">
         <label for="bonus" id="lbl-bonus">Bonus d’harmonisation (%)</label>
-        <input id="bonus" type="number" step="0.01" placeholder="5.19" title="Saisir un bonus manuel"/>
+        <input id="bonus" type="number" step="0.01" placeholder="" title="Bonus extrait ou manuel"/>
       </div>
 
       <div class="buttons">
@@ -191,26 +179,26 @@
   <script>
     const T = {
       fr: {
-        drop: "Glisse ou clique pour importer ton screenshot",
-        step1: "1) Clique en haut‑gauche de “Statistiques”",
-        step2: "2) Clique en bas‑droite de “Statistiques”",
-        step3: "3) Clique sur Analyser",
-        analyze: "Analyser",
-        reset:   "Réinitialiser",
-        lblHarm: "Harmonisation max",
-        lblTension: "Tension (%)",
-        lblLegend:  "Valeur légendaire",
-        calc:     "Calculer",
-        footer:   "Créé par : Fruiknox",
+        drop:"Glisse ou clique pour importer ton screenshot",
+        step1:"1) Clique en haut‑gauche de “Statistiques”",
+        step2:"2) Clique en bas‑droite de “Statistiques”",
+        step3:"3) Clique sur Analyser",
+        analyze:"Analyser",
+        reset:"Réinitialiser",
+        lblHarm:"Harmonisation max",
+        lblTension:"Tension (%)",
+        lblLegend:"Valeur légendaire",
+        calc:"Calculer",
+        footer:"Créé par : Fruiknox",
         helpTitle:"Comment utiliser",
-        help1:    "Importer votre capture d’écran",
-        help2:    "Sélectionner la zone Statistiques (2 clics)",
-        help3:    "Analyser pour extraire les chiffres",
-        help4:    "Calculer pour obtenir le coût",
-        demoCaption: "Exemple de sélection"
+        help1:"Importer votre capture d’écran",
+        help2:"Sélectionner la zone Statistiques (2 clics)",
+        help3:"Analyser pour extraire les chiffres",
+        help4:"Calculer pour obtenir le coût",
+        demoCaption:"Exemple de sélection"
       },
       en: {
-        drop: "Drag or click to upload your screenshot",
+        drop:"Drag or click to upload your screenshot",
         step1:"1) Click top‑left of the “Statistics” box",
         step2:"2) Click bottom‑right of the “Statistics” box",
         step3:"3) Click Analyze",
@@ -229,144 +217,15 @@
         demoCaption:"Selection example"
       }
     };
-
-    const langSelect = document.getElementById('lang-select');
-    const helpIcon   = document.querySelector('.help-icon');
-    const helpModal  = document.getElementById('help-modal');
-    const elems = {
-      dropText:   document.getElementById('drop-text'),
-      step1:      document.getElementById('step1'),
-      step2:      document.getElementById('step2'),
-      step3:      document.getElementById('step3'),
-      analyze:    document.getElementById('analyze-text'),
-      reset:      document.getElementById('reset-text'),
-      lblHarm:    document.getElementById('lbl-harm'),
-      lblTension: document.getElementById('lbl-tension'),
-      lblLegend:  document.getElementById('lbl-legend'),
-      calc:       document.getElementById('calc-text'),
-      footer:     document.getElementById('footer-text'),
-      helpTitle:  document.getElementById('help-title'),
-      help1:      document.getElementById('help-1'),
-      help2:      document.getElementById('help-2'),
-      help3:      document.getElementById('help-3'),
-      help4:      document.getElementById('help-4'),
-      demoCaption:document.getElementById('demo-caption')
-    };
-    function setLanguage(l){
-      const t = T[l];
-      Object.keys(elems).forEach(k=> elems[k].textContent = t[k]);
-      document.documentElement.lang = l;
-    }
-    setLanguage(langSelect.value);
-    langSelect.addEventListener('change',e=> setLanguage(e.target.value));
-    helpIcon.addEventListener('click',()=> helpModal.style.display='flex');
-    helpModal.addEventListener('click',e=>{ if(e.target===helpModal) helpModal.style.display='none'; });
-
-    const drop       = document.getElementById('drop-zone');
-    const img        = document.getElementById('image');
-    const instr      = document.getElementById('instr');
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const resetBtn   = document.getElementById('reset-btn');
-    const calcBtn    = document.getElementById('calc-btn');
-    const harmIn     = document.getElementById('harm');
-    const tensionIn  = document.getElementById('tension');
-    const legendIn   = document.getElementById('legend');
-    const bonusIn    = document.getElementById('bonus');
-    const resultEl   = document.getElementById('result');
-    let coords = [], file;
-    const fileInput = document.createElement('input');
-    fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
-    document.body.appendChild(fileInput);
-
-    drop.addEventListener('click',   ()=>fileInput.click());
-    drop.addEventListener('dragover',e=>{e.preventDefault();});
-    drop.addEventListener('dragenter',e=>{e.preventDefault(); drop.style.background='#eaf0ff';});
-    drop.addEventListener('dragleave',()=> drop.style.background='');
-    drop.addEventListener('drop',    e=>{e.preventDefault(); drop.style.background=''; handleFile(e.dataTransfer.files[0]);});
-    fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
-
-    function handleFile(f){
-      file=f; coords=[];
-      drop.style.display='none';
-      img.src=URL.createObjectURL(f);
-      img.style.display='block';
-      instr.style.display='block';
-      analyzeBtn.disabled=true;
-      resetBtn.disabled=false;
-      resultEl.textContent='';
-      harmIn.value=tensionIn.value=legendIn.value=bonusIn.value='';
-      img.addEventListener('click',onImgClick);
-    }
-    function onImgClick(e){
-      const r=img.getBoundingClientRect();
-      coords.push({x:e.clientX-r.left,y:e.clientY-r.top});
-      drawSelection();
-      if(coords.length===2){
-        img.removeEventListener('click',onImgClick);
-        analyzeBtn.disabled=false;
-      }
-    }
-    function drawSelection(){
-      let sel=document.getElementById('selection');
-      if(!sel){ sel=document.createElement('div'); sel.id='selection'; document.body.appendChild(sel); }
-      if(coords.length<1){ sel.style.display='none'; return; }
-      const[a,b]=coords;
-      const r=img.getBoundingClientRect();
-      const left=r.left+Math.min(a.x,b.x), top=r.top+Math.min(a.y,b.y);
-      const w=Math.abs(a.x-b.x), h=Math.abs(a.y-b.y);
-      sel.style.display='block';
-      sel.style.left=left+'px'; sel.style.top=top+'px';
-      sel.style.width=w+'px'; sel.style.height=h+'px';
-    }
-
-    analyzeBtn.addEventListener('click',async()=>{
-      resultEl.textContent='⏳ Extraction…';
-      const[a,b]=coords;
-      const scaleX=img.naturalWidth/img.width, scaleY=img.naturalHeight/img.height;
-      const X=Math.min(a.x,b.x)*scaleX, Y=Math.min(a.y,b.y)*scaleY;
-      const W=Math.abs(a.x-b.x)*scaleX, H=Math.abs(a.y-b.y)*scaleY;
-      const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-      const ctx=canvas.getContext('2d'), tmp=new Image(); tmp.src=img.src;
-      await new Promise(r=>tmp.onload=r);
-      ctx.drawImage(tmp,X,Y,W,H,0,0,W,H);
-      canvas.toBlob(async blob=>{
-        const fd=new FormData(); fd.append('image',blob,'stats.png');
-        try{
-          const res=await fetch('/extract-stats',{method:'POST',body:fd});
-          const j=await res.json(); if(j.error) throw new Error(j.error);
-          harmIn.value=j.harmonisation;
-          tensionIn.value=j.tension;
-          legendIn.value=j.legendary;
-        }catch(e){
-          resultEl.textContent='❌ '+e.message;
-        }
-      },'image/png');
-    });
-
-    resetBtn.addEventListener('click',()=>{
-      coords=[]; drawSelection();
-      analyzeBtn.disabled=true; resetBtn.disabled=true;
-      img.style.display='none'; drop.style.display='flex';
-      fileInput.value=''; instr.style.display='none';
-      resultEl.textContent='';
-      harmIn.value=tensionIn.value=legendIn.value=bonusIn.value='';
-    });
-
-    calcBtn.addEventListener('click',()=>{
-      const Pmax=+harmIn.value, S=+tensionIn.value, L=+legendIn.value, B=+bonusIn.value;
-      if(!Pmax||!S||!L||!B){
-        resultEl.textContent='⚠️ Merci de remplir les 4 champs.';
-        return;
-      }
-      const C0=1; let sum=0;
-      for(let i=1;i<=S;i++){
-        sum += (C0/Pmax)*(1+(i-1)/Pmax);
-      }
-      const term1=(1/L)*sum;
-      const term2=(S/L)*(C0/Pmax)*(1+S/Pmax);
-      const silver=(term1+term2)*(1+B/100);
-      resultEl.textContent=`Silver investi : ${silver.toLocaleString(undefined,{maximumFractionDigits:2})}`;
-    });
+    const langSelect=document.getElementById('lang-select'),helpIcon=document.querySelector('.help-icon'),helpModal=document.getElementById('help-modal');
+    const elems={dropText:document.getElementById('drop-text'),step1:document.getElementById('step1'),step2:document.getElementById('step2'),step3:document.getElementById('step3'),analyze:document.getElementById('analyze-text'),reset:document.getElementById('reset-text'),lblHarm:document.getElementById('lbl-harm'),lblTension:document.getElementById('lbl-tension'),lblLegend:document.getElementById('lbl-legend'),calc:document.getElementById('calc-text'),footer:document.getElementById('footer-text'),helpTitle:document.getElementById('help-title'),help1:document.getElementById('help-1'),help2:document.getElementById('help-2'),help3:document.getElementById('help-3'),help4:document.getElementById('help-4'),demoCaption:document.getElementById('demo-caption')};
+    function setLanguage(l){const t=T[l];Object.keys(elems).forEach(k=>elems[k].textContent=t[k]);document.documentElement.lang=l;}setLanguage(langSelect.value);langSelect.addEventListener('change',e=>setLanguage(e.target.value));helpIcon.addEventListener('click',()=>helpModal.style.display='flex');helpModal.addEventListener('click',e=>{if(e.target===helpModal)helpModal.style.display='none';});
+    const drop=document.getElementById('drop-zone'),img=document.getElementById('image'),instr=document.getElementById('instr'),analyzeBtn=document.getElementById('analyze-btn'),resetBtn=document.getElementById('reset-btn'),calcBtn=document.getElementById('calc-btn'),harmIn=document.getElementById('harm'),tensionIn=document.getElementById('tension'),legendIn=document.getElementById('legend'),bonusIn=document.getElementById('bonus'),resultEl=document.getElementById('result');let coords=[],file;const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/*';fileInput.style.display='none';document.body.appendChild(fileInput);
+    drop.addEventListener('click',()=>fileInput.click());drop.addEventListener('dragover',e=>{e.preventDefault();});drop.addEventListener('dragenter',e=>{e.preventDefault();drop.style.background='#eaf0ff';});drop.addEventListener('dragleave',()=>drop.style.background='');drop.addEventListener('drop',e=>{e.preventDefault();drop.style.background='';handleFile(e.dataTransfer.files[0]);});fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
+    function handleFile(f){file=f;coords=[];drop.style.display='none';img.src=URL.createObjectURL(f);img.style.display='block';instr.style.display='block';analyzeBtn.disabled=true;resetBtn.disabled=false;resultEl.textContent='';harmIn.value=tensionIn.value=legendIn.value=bonusIn.value='';img.addEventListener('click',onImgClick);}function onImgClick(e){const r=img.getBoundingClientRect();coords.push({x:e.clientX-r.left,y:e.clientY-r.top});drawSelection();if(coords.length===2){img.removeEventListener('click',onImgClick);analyzeBtn.disabled=false;}}function drawSelection(){let sel=document.getElementById('selection');if(!sel){sel=document.createElement('div');sel.id='selection';document.body.appendChild(sel);}if(coords.length<1){sel.style.display='none';return;}const[a,b]=coords;const r=img.getBoundingClientRect();const left=r.left+Math.min(a.x,b.x),top=r.top+Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);sel.style.display='block';sel.style.left=left+'px';sel.style.top=top+'px';sel.style.width=w+'px';sel.style.height=h+'px';}
+    analyzeBtn.addEventListener('click',async()=>{resultEl.textContent='⏳ Extraction…';const[a,b]=coords;const scaleX=img.naturalWidth/img.width,scaleY=img.naturalHeight/img.height;const X=Math.min(a.x,b.x)*scaleX,Y=Math.min(a.y,b.y)*scaleY,W=Math.abs(a.x-b.x)*scaleX,H=Math.abs(a.y-b.y)*scaleY;const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),tmp=new Image();tmp.src=img.src;await new Promise(r=>tmp.onload=r);ctx.drawImage(tmp,X,Y,W,H,0,0,W,H);canvas.toBlob(async blob=>{const fd=new FormData();fd.append('image',blob,'stats.png');try{const res=await fetch('/extract-stats',{method:'POST',body:fd});const j=await res.json();if(j.error)throw new Error(j.error);harmIn.value=j.harmonisation;tensionIn.value=j.tension;legendIn.value=j.legendary;bonusIn.value=j.bonus||'';}catch(e){resultEl.textContent='❌ '+e.message;}},'image/png');});
+    resetBtn.addEventListener('click',()=>{coords=[];drawSelection();analyzeBtn.disabled=true;resetBtn.disabled=true;img.style.display='none';drop.style.display='flex';fileInput.value='';instr.style.display='none';resultEl.textContent='';harmIn.value=tensionIn.value=legendIn.value=bonusIn.value='';});
+    calcBtn.addEventListener('click',()=>{const P=+harmIn.value;const S=parseFloat(tensionIn.value.toString().replace(',','.'));const L=+legendIn.value;const B=+bonusIn.value;if(!P||!S||!L||isNaN(B)){resultEl.textContent='⚠️ Merci de remplir les 4 champs.';return;}const C0=1;let sum=0;for(let i=1;i<=S;i++){sum+=(C0/P)*(1+(i-1)/P);}const term1=(1/L)*sum;const term2=(S/L)*(C0/P)*(1+S/P);const silver=(term1+term2)*(1+B/100);resultEl.textContent=`Silver investi : ${silver.toLocaleString(undefined,{maximumFractionDigits:2})}`;});
   </script>
 </body>
 </html>
